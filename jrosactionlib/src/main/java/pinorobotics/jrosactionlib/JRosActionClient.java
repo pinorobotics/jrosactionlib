@@ -1,0 +1,137 @@
+/*
+ * Copyright 2021 jrosactionlib project
+ * 
+ * Website: https://github.com/pinorobotics/jrosactionlib
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * Authors:
+ * - aeon_flux <aeon_flux@eclipso.ch>
+ */
+package pinorobotics.jrosactionlib;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import id.jrosclient.JRosClient;
+import id.jrosclient.TopicSubmissionPublisher;
+import id.jrosclient.TopicSubscriber;
+import id.jrosmessages.Message;
+import id.jrosmessages.primitives.Time;
+import id.jrosmessages.std_msgs.StringMessage;
+import id.xfunction.lang.XThread;
+import id.xfunction.logging.XLogger;
+import pinorobotics.jrosactionlib.actionlib_msgs.GoalIdMessage;
+import pinorobotics.jrosactionlib.msgs.ActionDefinition;
+import pinorobotics.jrosactionlib.msgs.ActionGoalMessage;
+import pinorobotics.jrosactionlib.msgs.ActionResultMessage;
+
+/**
+ * Client which allows to interact with ROS Action Server.
+ * It communicates with it via a "ROS Action Protocol"
+ * 
+ * @see <a href="http://wiki.ros.org/actionlib/DetailedDescription">Actionlib</a>
+ *
+ * @param <G> message type used to represent a goal
+ * @param <R> message type sent by ActionServer upon goal completion 
+ */
+public class JRosActionClient<G extends Message, R extends Message> implements Closeable
+{
+
+    private static final XLogger LOGGER = XLogger.getLogger(JRosActionClient.class);
+    private JRosClient client;
+    private String actionServerName;
+    private ActionDefinition<G, R> actionDefinition;
+    private int goalCounter;
+    private boolean isActive;
+    private TopicSubmissionPublisher<ActionGoalMessage> goalPublisher;
+    private TopicSubscriber<ActionResultMessage> resultsDispatcher;
+    private Map<String, CompletableFuture<R>> pendingGoals = new HashMap<>();
+
+    /**
+     * Creates a new instance of the client
+     * @param client ROS client
+     * @param actionDefinition message type definitions for an action
+     * @param actionServerName name of the action server which will execute the actions
+     */
+    public JRosActionClient(JRosClient client, ActionDefinition<G, R> actionDefinition, String actionServerName) {
+        this.client = client;
+        this.actionDefinition = actionDefinition;
+        this.actionServerName = actionServerName;
+        goalPublisher = new TopicSubmissionPublisher<>((Class)actionDefinition.getActionGoalMessage(),
+                actionServerName + "/goal");
+        resultsDispatcher = new TopicSubscriber<ActionResultMessage>((Class)actionDefinition.getActionResultMessage(), actionServerName + "/result") {
+            @Override
+            public void onNext(ActionResultMessage item) {
+                LOGGER.entering("onNext " + actionServerName);
+                var future = pendingGoals.get(item.getStatus().goal_id.id.data);
+                future.complete((R) item.getResult());
+                // request next message
+                request(1);
+                LOGGER.exiting("onNext " + actionServerName);
+            }
+        };
+    }
+    
+    /**
+     * Send new goal to action server to execute
+     * @param goal
+     * @return future which will be completed once action will be completed by an action server
+     * @throws Exception
+     */
+    public CompletableFuture<R> sendGoal(G goal) throws Exception {
+        LOGGER.entering("sendGoal " + actionServerName);
+        var actionGoal = actionDefinition.getActionGoalMessage().getConstructor().newInstance();
+        if (!isActive) {
+            client.publish(goalPublisher);
+            client.subscribe(resultsDispatcher);
+            isActive = true;
+        }
+        while (goalPublisher.getNumberOfSubscribers() == 0) {
+            LOGGER.fine("No subscribers");
+            XThread.sleep(100);
+        }
+        var id = hashCode() + "." + goalCounter++;
+        actionGoal.withGoalId(new GoalIdMessage()
+                .withId(new StringMessage(id))
+                .withStamp(Time.now()));
+        actionGoal.withGoal(goal);
+        
+        LOGGER.info("Sending goal with id {0}", id);
+        goalPublisher.submit(actionGoal);
+        
+        // register a new subscriber
+        var future = new CompletableFuture<R>();
+        pendingGoals.put(id, future);
+        
+        LOGGER.exiting("sendGoal" + actionServerName);
+        return future;
+    }
+    
+    @Override
+    public void close() throws IOException {
+        LOGGER.entering("close " + actionServerName);
+        if (isActive) {
+            goalPublisher.close();
+            client.unpublish(goalPublisher.getTopic());
+            resultsDispatcher.getSubscription().cancel();
+        }
+        isActive = false;
+        LOGGER.exiting("close " + actionServerName);
+    }
+}

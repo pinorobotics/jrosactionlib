@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+apply plugin : 'eclipse'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    testImplementation project(':jrosactionlib')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
+    testImplementation('org.junit.jupiter:junit-jupiter-params:5.4.2')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.4.2')
+    testRuntimeOnly('org.junit.platform:junit-platform-commons:1.7.0')
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+java {
+    modularity.inferModulePath = true
+}
+
+sourceSets {
+    test {
+        java {
+            srcDirs += ["src/gen"]
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

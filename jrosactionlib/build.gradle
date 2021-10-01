@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+}
+
+apply plugin : 'eclipse'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    // transitively export following dependency to tests project
+    apiElements fileTree(include: ['*.jar'], dir: 'libs')
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+jar { 
+    manifest { 
+        attributes 'Implementation-Version': "${rootProject.version}"
+    }
+}
+
+java {
+    modularity.inferModulePath = true
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += ["src/main/gen"]
+        }
+    }
+}
+
+javadoc {
+    options.noTimestamp = true;
+    options.noQualifiers = ["all"];
+    options.noTree = true;
+    options.noIndex = true;
+    options.noNavBar = true;
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+def packageDir = "$buildDir/package/${projectName}"
+
+ext.artifacts = fileTree(include: ['*'], dir: "$packageDir/libs")
+
+task createRelease(type: Zip) {
+    archiveFileName = "$releaseFileName"
+    destinationDirectory = file("$projectDir/release")
+    from file("$packageDir/..")
+}
+
+task copyLibs(type: Copy) {
+    from "$projectDir/libs"
+    from jar.archiveFile
+    into "${packageDir}/libs"
+}
+
+task copyReadme(type: Copy) {
+    from("${project.rootDir}/README.md")
+    into("$projectDir/src/main/resources")
+}
+
+task createPackage(type: Copy, dependsOn: [copyLibs]) {
+    from "${project.rootDir}/README.md"
+    from "${project.rootDir}/LICENSE-2.0.txt"
+    from file("$projectDir/src/jrosrviztools")
+    into packageDir
+}
+
+task cleanRelease(type: Delete) {
+    delete "$packageDir"
+    delete "$projectDir/release"
+}
+
+compileJava.dependsOn copyReadme
+createRelease.dependsOn createPackage, javadoc
+assemble.dependsOn createRelease
+clean.dependsOn cleanRelease
+processResources.dependsOn copyReadme
+
