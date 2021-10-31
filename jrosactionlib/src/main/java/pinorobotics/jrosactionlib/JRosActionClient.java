@@ -85,6 +85,11 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
                 request(1);
                 LOGGER.exiting("onNext " + actionServerName);
             }
+            @Override
+            public void onError(Throwable throwable) {
+                super.onError(throwable);
+                pendingGoals.values().forEach(fu -> fu.completeExceptionally(throwable));
+            }
         };
     }
     
