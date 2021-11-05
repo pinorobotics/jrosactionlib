@@ -1,6 +1,6 @@
 Tests for **jrosactionlib** library.
 
-Some integration tests rely on test_server being running. To run it you may need to build it first:
+Some integration tests rely on `test_server` being running. To run it you may need to build it first:
 
 ``` bash
 cd ws

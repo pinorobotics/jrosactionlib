@@ -1,3 +1,9 @@
+/*
+ * Based on Actionlib tutorial
+ *
+ * See http://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer(ExecuteCallbackMethod)
+ */
+
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib_tutorials/FibonacciAction.h>

@@ -4,14 +4,12 @@ plugins {
 
 apply plugin : 'eclipse'
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    implementation 'io.github.lambdaprime:jrosclient:3.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // transitively export following dependency to tests project
+    apiElements 'io.github.lambdaprime:jrosclient:3.0'
     apiElements fileTree(include: ['*.jar'], dir: 'libs')
 }
 
@@ -56,7 +54,8 @@ task createRelease(type: Zip) {
 }
 
 task copyLibs(type: Copy) {
-    from "$projectDir/libs"
+    from configurations.default
+    //from "$projectDir/libs"
     from jar.archiveFile
     into "${packageDir}/libs"
 }
@@ -76,3 +75,15 @@ createRelease.dependsOn createPackage, javadoc
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'jrosactionlib'
+            group = "io.github.pinorobotics"
+            version = "${version}"
+            artifact jar.archiveFile
+        }
+    }
+}
