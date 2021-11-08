@@ -46,7 +46,7 @@ public class JRosActionClientIntegrationTests {
 
     @BeforeEach
     public void setup() throws MalformedURLException {
-       XLogger.load("logging-test.properties");
+        XLogger.load("logging-test.properties");
         client = new JRosClient("http://localhost:11311/");
         actionClient = new JRosActionClient<>(
                 client, new FibonacciActionDefinition(), "/fibonacci");

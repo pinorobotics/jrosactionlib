@@ -55,7 +55,6 @@ task createRelease(type: Zip) {
 
 task copyLibs(type: Copy) {
     from configurations.default
-    //from "$projectDir/libs"
     from jar.archiveFile
     into "${packageDir}/libs"
 }
