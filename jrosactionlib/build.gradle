@@ -4,13 +4,19 @@ plugins {
 
 apply plugin : 'eclipse'
 
+eclipse.classpath.file {
+    // because we disable inferModulePath later we intruct eclipse plugin
+    // to put everything to module path
+    whenMerged {
+        entries.findAll { it.kind == 'lib' }.each { it.entryAttributes['module'] = 'true' }
+    }
+}
+
 dependencies {
     implementation 'io.github.lambdaprime:jrosclient:3.0'
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // transitively export following dependency to tests project
     apiElements 'io.github.lambdaprime:jrosclient:3.0'
-    apiElements fileTree(include: ['*.jar'], dir: 'libs')
 }
 
 sourceCompatibility = '11'
@@ -19,18 +25,6 @@ targetCompatibility = '11'
 jar { 
     manifest { 
         attributes 'Implementation-Version': "${rootProject.version}"
-    }
-}
-
-java {
-    modularity.inferModulePath = true
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs += ["src/main/gen"]
-        }
     }
 }
 
@@ -43,9 +37,15 @@ javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-def packageDir = "$buildDir/package/${projectName}"
+sourceSets {
+    main {
+        java {
+            srcDirs += ["src/main/gen/java"]
+        }
+    }
+}
 
-ext.artifacts = fileTree(include: ['*'], dir: "$packageDir/libs")
+def packageDir = "$buildDir/package/${projectName}"
 
 task createRelease(type: Zip) {
     archiveFileName = "$releaseFileName"
@@ -54,7 +54,7 @@ task createRelease(type: Zip) {
 }
 
 task copyLibs(type: Copy) {
-    from configurations.default
+    from configurations.runtimeClasspath
     from jar.archiveFile
     into "${packageDir}/libs"
 }
@@ -74,15 +74,88 @@ createRelease.dependsOn createPackage, javadoc
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
-apply plugin: 'maven-publish'
+task updateVersion() {
+    if (version.contains("SNAPSHOT")) return;
+    println "Updating version to " + version
+    new id.xfunction.text.Substitutor()
+        .withRegexpSupport()
+        .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+            "io.github.pinorobotics:jrosactionlib:[0-9.]+", "io.github.pinorobotics:jrosactionlib:" + version
+        ));
+}
 
-publishing {
+createPackage.dependsOn updateVersion
+
+if (project.hasProperty('publish')) {
+
+  // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
+  // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
+  // it was rewritten for new one
+
+  task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from "README-javadoc.txt"
+  }
+
+  task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from "README-sources.txt"
+  }
+
+  java {
+    withJavadocJar()
+    withSourcesJar()
+  }
+
+  apply plugin: 'maven-publish'
+
+  publishing {
     publications {
-        maven(MavenPublication) {
-            artifactId = 'jrosactionlib'
-            group = "io.github.pinorobotics"
-            version = "${version}"
-            artifact jar.archiveFile
+      mavenJava(MavenPublication) {
+        artifactId = 'jrosactionlib'
+        groupId = 'io.github.pinorobotics'
+        from components.java
+        pom {
+          name = 'jrosactionlib'
+          description = 'Java module for interaction with ROS Action Server'
+          url = 'http://pinoweb.freetzi.com/jrosactionlib'
+
+          licenses {
+            license {
+              name = 'The Apache License, Version 2.0'
+              url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+          }
+
+          developers {
+            developer {
+              id = 'aeon'
+              email = 'aeon_flux@eclipso.ch'
+            }
+          }
+
+          scm {
+            url = 'https://github.com/pinorobotics/jrosactionlib'
+          }
         }
+      }
     }
+    repositories {
+      maven {
+        credentials {
+          username ossrhUsername
+          password ossrhPassword
+        }
+        url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+      }
+    }    
+  }
+
+  if (project.hasProperty('signing.secretKeyRingFile')) {
+    apply plugin: 'signing'
+
+    signing {
+      sign publishing.publications.mavenJava
+    }
+  }
 }

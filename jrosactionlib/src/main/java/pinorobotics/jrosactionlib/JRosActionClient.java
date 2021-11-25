@@ -82,7 +82,7 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
                 var future = pendingGoals.get(item.getStatus().goal_id.id.data);
                 future.complete((R) item.getResult());
                 // request next message
-                request(1);
+                getSubscription().request(1);
                 LOGGER.exiting("onNext " + actionServerName);
             }
             @Override
