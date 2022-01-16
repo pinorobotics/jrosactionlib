@@ -95,9 +95,7 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
     
     /**
      * Send new goal to action server to execute
-     * @param goal
      * @return future which will be completed once action will be completed by an action server
-     * @throws Exception
      */
     public CompletableFuture<R> sendGoal(G goal) throws Exception {
         LOGGER.entering("sendGoal " + actionServerName);

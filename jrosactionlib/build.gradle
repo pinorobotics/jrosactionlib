@@ -1,3 +1,13 @@
+// include xfunction for updateVersion
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.github.lambdaprime:id.xfunction:14.0"
+    }
+}
+
 plugins {
     id 'java'
 }
@@ -13,10 +23,10 @@ eclipse.classpath.file {
 }
 
 dependencies {
-    implementation 'io.github.lambdaprime:jrosclient:3.0'
+    implementation 'io.github.lambdaprime:jrosclient:3.0-SNAPSHOT'
 
     // transitively export following dependency to tests project
-    apiElements 'io.github.lambdaprime:jrosclient:3.0'
+    apiElements 'io.github.lambdaprime:jrosclient:3.0-SNAPSHOT'
 }
 
 sourceCompatibility = '11'
@@ -28,21 +38,22 @@ jar {
     }
 }
 
-javadoc {
-    options.noTimestamp = true;
-    options.noQualifiers = ["all"];
-    options.noTree = true;
-    options.noIndex = true;
-    options.noNavBar = true;
-    options.addStringOption('Xdoclint:none', '-quiet')
-}
-
 sourceSets {
     main {
         java {
             srcDirs += ["src/main/gen/java"]
         }
     }
+}
+
+javadoc {
+    options.noTimestamp = true;
+    options.noQualifiers = ["all"];
+    options.noTree = true;
+    options.noIndex = true;
+    options.noNavBar = true;
+    // ignore missing @return, @param etc
+    options.addBooleanOption('Xdoclint:all,-missing', true)
 }
 
 def packageDir = "$buildDir/package/${projectName}"
@@ -74,19 +85,19 @@ createRelease.dependsOn createPackage, javadoc
 assemble.dependsOn createRelease
 clean.dependsOn cleanRelease
 
-task updateVersion() {
-    if (version.contains("SNAPSHOT")) return;
-    println "Updating version to " + version
-    new id.xfunction.text.Substitutor()
-        .withRegexpSupport()
-        .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
-            "io.github.pinorobotics:jrosactionlib:[0-9.]+", "io.github.pinorobotics:jrosactionlib:" + version
-        ));
-}
-
-createPackage.dependsOn updateVersion
-
 if (project.hasProperty('publish')) {
+
+  // update version only during publishing
+  task updateVersion() {
+      if (version.contains("SNAPSHOT")) return;
+      println "Updating version to " + version
+      new id.xfunction.text.Substitutor()
+          .withRegexpSupport()
+          .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+              "io.github.pinorobotics:jrosactionlib:[0-9.]+", "io.github.pinorobotics:jrosactionlib:" + version
+          ));
+  }
+  createPackage.dependsOn updateVersion
 
   // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
   // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
