@@ -15,27 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - aeon_flux <aeon_flux@eclipso.ch>
- */
 package pinorobotics.jrosrviztools.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.net.MalformedURLException;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import id.jrosclient.JRosClient;
 import id.jrosmessages.std_msgs.Int32Message;
 import id.xfunction.ResourceUtils;
 import id.xfunction.logging.XLogger;
+import java.net.MalformedURLException;
 import jrosactionlib.tests.actionlib_tutorials_msgs.FibonacciActionDefinition;
 import jrosactionlib.tests.actionlib_tutorials_msgs.FibonacciGoalMessage;
 import jrosactionlib.tests.actionlib_tutorials_msgs.FibonacciResultMessage;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import pinorobotics.jrosactionlib.JRosActionClient;
 
 public class JRosActionClientIntegrationTests {
@@ -48,8 +42,8 @@ public class JRosActionClientIntegrationTests {
     public void setup() throws MalformedURLException {
         XLogger.load("logging-test.properties");
         client = new JRosClient("http://localhost:11311/");
-        actionClient = new JRosActionClient<>(
-                client, new FibonacciActionDefinition(), "/fibonacci");
+        actionClient =
+                new JRosActionClient<>(client, new FibonacciActionDefinition(), "/fibonacci");
     }
 
     @AfterEach
@@ -57,11 +51,10 @@ public class JRosActionClientIntegrationTests {
         actionClient.close();
         client.close();
     }
-    
+
     @Test
     public void test_sendGoal() throws Exception {
-        var goal = new FibonacciGoalMessage()
-                .withOrder(new Int32Message().withData(5));
+        var goal = new FibonacciGoalMessage().withOrder(new Int32Message().withData(5));
         var result = actionClient.sendGoal(goal).get();
         System.out.println(result);
         assertEquals(resourceUtils.readResource("test_sendGoal"), result.toString());

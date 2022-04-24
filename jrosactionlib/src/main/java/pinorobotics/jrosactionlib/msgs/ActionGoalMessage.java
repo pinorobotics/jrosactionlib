@@ -15,10 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - aeon_flux <aeon_flux@eclipso.ch>
- */
 package pinorobotics.jrosactionlib.msgs;
 
 import id.jrosmessages.Message;
@@ -26,11 +22,12 @@ import pinorobotics.jrosactionlib.actionlib_msgs.GoalIdMessage;
 
 /**
  * Base interface for all actionlib goal messages.
- * 
- * <p>Each actionlib goal message should consist from actionlib metadata
- * {@link GoalIdMessage}) and the goal {@link Message}
+ *
+ * <p>Each actionlib goal message should consist from actionlib metadata {@link GoalIdMessage}) and
+ * the goal {@link Message}
  */
 public interface ActionGoalMessage<G extends Message> extends Message {
     ActionGoalMessage<G> withGoalId(GoalIdMessage goal_id);
+
     ActionGoalMessage<G> withGoal(G goal);
 }

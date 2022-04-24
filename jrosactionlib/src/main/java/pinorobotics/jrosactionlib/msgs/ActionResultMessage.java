@@ -15,20 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Authors:
- * - aeon_flux <aeon_flux@eclipso.ch>
- */
 package pinorobotics.jrosactionlib.msgs;
 
 import id.jrosmessages.Message;
 import pinorobotics.jrosactionlib.actionlib_msgs.GoalStatusMessage;
 
 /**
- * <p>Base interface for all actionlib result messages.
+ * Base interface for all actionlib result messages.
+ *
  * <p>Contains actionlib metadata + result itself.
  */
 public interface ActionResultMessage<R extends Message> extends Message {
     GoalStatusMessage getStatus();
+
     R getResult();
 }
