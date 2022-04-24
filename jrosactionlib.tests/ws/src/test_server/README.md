@@ -1,1 +1,0 @@
-Based on [Actionlib tutorial](http://wiki.ros.org/actionlib_tutorials/Tutorials/SimpleActionServer%28ExecuteCallbackMethod%29)

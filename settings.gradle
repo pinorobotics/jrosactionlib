@@ -1,2 +1,1 @@
 include 'jrosactionlib'
-include 'jrosactionlib.tests'
