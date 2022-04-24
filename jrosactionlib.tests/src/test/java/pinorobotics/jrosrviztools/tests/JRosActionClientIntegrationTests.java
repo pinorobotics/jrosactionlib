@@ -19,6 +19,7 @@ package pinorobotics.jrosrviztools.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import id.jros1client.JRos1ClientFactory;
 import id.jrosclient.JRosClient;
 import id.jrosmessages.std_msgs.Int32Message;
 import id.xfunction.ResourceUtils;
@@ -41,7 +42,7 @@ public class JRosActionClientIntegrationTests {
     @BeforeEach
     public void setup() throws MalformedURLException {
         XLogger.load("logging-test.properties");
-        client = new JRosClient("http://localhost:11311/");
+        client = new JRos1ClientFactory().createJRosClient("http://localhost:11311/");
         actionClient =
                 new JRosActionClient<>(client, new FibonacciActionDefinition(), "/fibonacci");
     }

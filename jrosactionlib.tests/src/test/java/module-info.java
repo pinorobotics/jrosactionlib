@@ -22,9 +22,11 @@
 open module jrosrviztools.tests {
     requires id.xfunction;
     requires id.kineticstreamer;
-    requires jrosclient;
+    requires jros1client;
+    requires jros1messages;
     requires jrosactionlib;
     requires org.junit.jupiter.api;
+    requires jrosclient;
 
     exports pinorobotics.jrosrviztools.tests;
 }

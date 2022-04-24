@@ -31,6 +31,7 @@ module jrosactionlib {
     // since many of our API relies on jrosclient classes we need to ensure
     // that all modules reading this module also read jrosclient
     requires transitive jrosclient;
+    requires jros1messages;
     requires id.xfunction;
     requires id.kineticstreamer;
 
