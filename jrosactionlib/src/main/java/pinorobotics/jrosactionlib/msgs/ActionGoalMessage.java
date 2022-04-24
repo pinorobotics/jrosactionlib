@@ -22,15 +22,15 @@
 package pinorobotics.jrosactionlib.msgs;
 
 import id.jrosmessages.Message;
-import id.jrosmessages.std_msgs.HeaderMessage;
 import pinorobotics.jrosactionlib.actionlib_msgs.GoalIdMessage;
 
 /**
- * <p>Base interface for all actionlib goal messages
- * <p>Contains actionlib metadata + goal itself.
+ * Base interface for all actionlib goal messages.
+ * 
+ * <p>Each actionlib goal message should consist from actionlib metadata
+ * {@link GoalIdMessage}) and the goal {@link Message}
  */
 public interface ActionGoalMessage<G extends Message> extends Message {
-    ActionGoalMessage<G> withHeader(HeaderMessage header);
     ActionGoalMessage<G> withGoalId(GoalIdMessage goal_id);
     ActionGoalMessage<G> withGoal(G goal);
 }
