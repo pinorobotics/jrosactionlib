@@ -21,7 +21,6 @@ import id.jrosmessages.Message;
 import id.jrosmessages.MessageMetadata;
 import id.jrosmessages.primitives.Time;
 import id.jrosmessages.std_msgs.StringMessage;
-import id.kineticstreamer.annotations.Streamed;
 import id.xfunction.XJson;
 import java.util.Objects;
 
@@ -35,13 +34,13 @@ public class GoalIdMessage implements Message {
      * The stamp should store the time at which this goal was requested. It is used by an action
      * server when it tries to preempt all goals that were requested before a certain time
      */
-    @Streamed public Time stamp = new Time();
+    public Time stamp = new Time();
 
     /**
      * The id provides a way to associate feedback and result message with specific goal requests.
      * The id specified must be unique.
      */
-    @Streamed public StringMessage id = new StringMessage();
+    public StringMessage id = new StringMessage();
 
     public GoalIdMessage withStamp(Time stamp) {
         this.stamp = stamp;

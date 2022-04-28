@@ -20,8 +20,8 @@
  * - aeon_flux <aeon_flux@eclipso.ch>
  */
 /**
- * Java module which allows to interact with <a href="http://wiki.ros.org/actionlib/">ROS (Robotic
- * Operation System) Action Server</a>.
+ * Java module which allows to interact with <a href="http://wiki.ros.org/actionlib/">ROS (Robot
+ * Operating System) Action Server</a>.
  *
  * @see <a href="https://github.com/pinorobotics/jrosactionlib/releases">Download</a>
  * @see <a href="https://github.com/pinorobotics/jrosactionlib">GitHub repository</a>
@@ -32,7 +32,6 @@ module jrosactionlib {
     // that all modules reading this module also read jrosclient
     requires transitive jrosclient;
     requires id.xfunction;
-    requires id.kineticstreamer;
 
     exports pinorobotics.jrosactionlib;
     exports pinorobotics.jrosactionlib.msgs;

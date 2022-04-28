@@ -20,7 +20,6 @@ package pinorobotics.jrosactionlib.actionlib_msgs;
 import id.jrosmessages.Message;
 import id.jrosmessages.MessageMetadata;
 import id.jrosmessages.std_msgs.StringMessage;
-import id.kineticstreamer.annotations.Streamed;
 import id.xfunction.XJson;
 import java.util.Objects;
 
@@ -80,15 +79,15 @@ public class GoalStatusMessage implements Message {
         LOST,
     }
 
-    @Streamed public GoalIdMessage goal_id = new GoalIdMessage();
+    public GoalIdMessage goal_id = new GoalIdMessage();
 
-    @Streamed public byte status;
+    public byte status;
 
     /**
      * sent over the wire by an action server Allow for the user to associate a string with
      * GoalStatus for debugging
      */
-    @Streamed public StringMessage text = new StringMessage();
+    public StringMessage text = new StringMessage();
 
     public GoalStatusMessage withGoalId(GoalIdMessage goal_id) {
         this.goal_id = goal_id;
