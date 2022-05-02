@@ -21,8 +21,6 @@ import id.jrosclient.JRosClient;
 import id.jrosclient.TopicSubmissionPublisher;
 import id.jrosclient.TopicSubscriber;
 import id.jrosmessages.Message;
-import id.jrosmessages.primitives.Time;
-import id.jrosmessages.std_msgs.StringMessage;
 import id.xfunction.lang.XThread;
 import id.xfunction.logging.XLogger;
 import java.io.Closeable;
@@ -30,10 +28,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import pinorobotics.jrosactionlib.actionlib_msgs.GoalIdMessage;
 import pinorobotics.jrosactionlib.msgs.ActionDefinition;
 import pinorobotics.jrosactionlib.msgs.ActionGoalMessage;
 import pinorobotics.jrosactionlib.msgs.ActionResultMessage;
+import pinorobotics.jrosactionlib.msgs.GoalId;
 
 /**
  * Client which allows to interact with ROS Action Server. It communicates with it via a "ROS Action
@@ -43,17 +41,16 @@ import pinorobotics.jrosactionlib.msgs.ActionResultMessage;
  * @param <G> message type used to represent a goal
  * @param <R> message type sent by ActionServer upon goal completion
  */
-public class JRosActionClient<G extends Message, R extends Message> implements Closeable {
+public abstract class JRosActionClient<G extends Message, R extends Message> implements Closeable {
 
     private static final XLogger LOGGER = XLogger.getLogger(JRosActionClient.class);
     private JRosClient client;
     private String actionServerName;
     private ActionDefinition<G, R> actionDefinition;
-    private int goalCounter;
     private boolean isActive;
     private TopicSubmissionPublisher<ActionGoalMessage> goalPublisher;
     private TopicSubscriber<ActionResultMessage> resultsDispatcher;
-    private Map<String, CompletableFuture<R>> pendingGoals = new HashMap<>();
+    private Map<GoalId, CompletableFuture<R>> pendingGoals = new HashMap<>();
 
     /**
      * Creates a new instance of the client
@@ -70,7 +67,7 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
         goalPublisher =
                 new TopicSubmissionPublisher<>(
                         (Class) actionDefinition.getActionGoalMessage(),
-                        actionServerName + "/goal");
+                        asSendGoalTopicName(actionServerName));
         resultsDispatcher =
                 new TopicSubscriber<ActionResultMessage>(
                         (Class) actionDefinition.getActionResultMessage(),
@@ -78,7 +75,7 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
                     @Override
                     public void onNext(ActionResultMessage item) {
                         LOGGER.entering("onNext " + actionServerName);
-                        var future = pendingGoals.get(item.getStatus().goal_id.id.data);
+                        var future = pendingGoals.get(item.getStatus().goal_id);
                         future.complete((R) item.getResult());
                         // request next message
                         getSubscription().request(1);
@@ -110,21 +107,25 @@ public class JRosActionClient<G extends Message, R extends Message> implements C
             LOGGER.fine("No subscribers");
             XThread.sleep(100);
         }
-        var id = hashCode() + "." + goalCounter++;
-        actionGoal.withGoalId(
-                new GoalIdMessage().withId(new StringMessage(id)).withStamp(Time.now()));
+
+        var goalId = createGoalId();
+        actionGoal.withGoalId(goalId);
         actionGoal.withGoal(goal);
 
-        LOGGER.info("Sending goal with id {0}", id);
+        LOGGER.info("Sending goal with id {0}", goalId);
         goalPublisher.submit(actionGoal);
 
         // register a new subscriber
         var future = new CompletableFuture<R>();
-        pendingGoals.put(id, future);
+        pendingGoals.put(goalId, future);
 
         LOGGER.exiting("sendGoal" + actionServerName);
         return future;
     }
+
+    protected abstract String asSendGoalTopicName(String actionServerName);
+
+    protected abstract GoalId createGoalId();
 
     @Override
     public void close() throws IOException {

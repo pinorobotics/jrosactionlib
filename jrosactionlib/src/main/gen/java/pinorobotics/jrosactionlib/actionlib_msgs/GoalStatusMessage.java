@@ -22,9 +22,10 @@ import id.jrosmessages.MessageMetadata;
 import id.jrosmessages.std_msgs.StringMessage;
 import id.xfunction.XJson;
 import java.util.Objects;
+import pinorobotics.jrosactionlib.msgs.GoalId;
 
 /** Definition for actionlib_msgs/GoalStatus */
-@MessageMetadata(type = GoalStatusMessage.NAME, md5sum = "b6758985eced8e08e99ce12a55072791")
+@MessageMetadata(name = GoalStatusMessage.NAME, md5sum = "b6758985eced8e08e99ce12a55072791")
 public class GoalStatusMessage implements Message {
 
     static final String NAME = "actionlib_msgs/GoalStatus";
@@ -79,7 +80,7 @@ public class GoalStatusMessage implements Message {
         LOST,
     }
 
-    public GoalIdMessage goal_id = new GoalIdMessage();
+    public GoalId goal_id;
 
     public byte status;
 
@@ -89,7 +90,7 @@ public class GoalStatusMessage implements Message {
      */
     public StringMessage text = new StringMessage();
 
-    public GoalStatusMessage withGoalId(GoalIdMessage goal_id) {
+    public GoalStatusMessage withGoalId(GoalId goal_id) {
         this.goal_id = goal_id;
         return this;
     }

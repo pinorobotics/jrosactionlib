@@ -20,19 +20,24 @@ package pinorobotics.jrosactionlib.msgs;
 import id.jrosmessages.Message;
 
 /**
- * Actionlib requires for each action to have 3 separate messages: Goal, Feedback, Result.
+ * Actionlib action definition.
+ *
+ * <p>ROS Actionlib allow users to define actions in action/*.action files. For each action it
+ * requires to have 3 separate messages: Goal, Feedback, Result.
  *
  * <p>On top of that it will create for each such message an actionlib message where the original
- * message + actionlib metadata is stored.
+ * message (Goal, Feedback, Result) + actionlib metadata is stored.
+ *
+ * <p>This interface acts similar to *.action files. Users describe ROS action by implementing it
+ * and <b>jrosclient</b> will map it to ROS Actionlib action.
  *
  * <p>Since there are many message types involved it is easy to accidently mix-up message types from
- * different actions.
- *
- * <p>To prevent this happening we use this iface. It consolidates all message types for each action
- * and helps to detect any type issues during compile time.
+ * different actions. This interface helps to address this too. It consolidates all message types
+ * for each action and helps to detect any type issues during compile time.
  *
  * @param <G> message type used to represent a goal
  * @param <R> message type sent by ActionServer upon goal completion
+ * @author aeon_flux aeon_flux@eclipso.ch
  */
 public interface ActionDefinition<G extends Message, R extends Message> {
 
