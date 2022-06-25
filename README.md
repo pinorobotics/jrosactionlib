@@ -1,4 +1,4 @@
-**jrosactionlib** - base Java module which allows to interact with ROS Action Server. It contains only interfaces and classes which are agnostic to ROS version.
+**jrosactionlib** - interfaces and classes which are agnostic to version of ROS Action Server.
 
 # Requirements
 
@@ -20,7 +20,7 @@ dependencies {
 
 # Documentation
 
-[Documentation](http://portal2.atwebpages.com/jrosactionlib)
+[Documentation](http://pinoweb.freetzi.com/jrosactionlib)
 
 [Development](DEVELOPMENT.md)
 

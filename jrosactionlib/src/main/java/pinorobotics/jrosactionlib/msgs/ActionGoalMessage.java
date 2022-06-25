@@ -18,14 +18,12 @@
 package pinorobotics.jrosactionlib.msgs;
 
 import id.jrosmessages.Message;
-import id.xfunction.XJson;
-import java.util.Objects;
 
 /**
  * Base interface for all actionlib goal messages.
  *
- * <p>Each actionlib goal message should consist from actionlib metadata ({@link GoalId}) and the
- * goal {@link Message}.
+ * <p>Each actionlib goal message should consist from actionlib metadata ({@link
+ * ActionGoalIdMessage}) and the goal {@link Message}.
  *
  * <p>ROS2: This class represents the Send Goal requests which usually defined in
  * action/dds_connext/[ACTION_NAME]_.idl files inside *::dds_::[ACTION_NAME]_SendGoal_Request_
@@ -33,37 +31,9 @@ import java.util.Objects;
  * @see <a href="https://design.ros2.org/articles/actions.html">Actions</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
-public class ActionGoalMessage<G extends Message> implements Message {
+public interface ActionGoalMessage<G extends Message> extends Message {
 
-    public GoalId goal_id;
+    ActionGoalMessage<G> withGoalId(ActionGoalIdMessage goal_id);
 
-    public G goal;
-
-    public ActionGoalMessage<G> withGoalId(GoalId goal_id) {
-        this.goal_id = goal_id;
-        return this;
-    }
-
-    public ActionGoalMessage<G> withGoal(G goal) {
-        this.goal = goal;
-        return this;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(goal_id, goal);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        var other = (ActionGoalMessage<?>) obj;
-        return Objects.equals(goal_id, other.goal_id) && Objects.equals(goal, other.goal);
-    }
-
-    @Override
-    public String toString() {
-        return XJson.asString(
-                "goal_id", goal_id,
-                "goal", goal);
-    }
+    ActionGoalMessage<G> withGoal(G goal);
 }

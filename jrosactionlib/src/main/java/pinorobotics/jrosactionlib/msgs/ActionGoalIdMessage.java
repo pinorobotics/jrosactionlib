@@ -17,19 +17,21 @@
  */
 package pinorobotics.jrosactionlib.msgs;
 
+import id.jrosmessages.Message;
+
 /**
  * In different ROS version GoalId is different so this interface is used to abstract them from
  * <b>jrosactionlib</b>
  *
  * @author aeon_flux aeon_flux@eclipso.ch
  */
-public interface GoalId {
+public interface ActionGoalIdMessage extends Message {
 
-    /** Require goal ids to implement equality */
+    /** Require goal ids messages to implement equality */
     @Override
     boolean equals(Object obj);
 
-    /** Require goal ids to implement equality */
+    /** Require goal ids messages to implement equality */
     @Override
     int hashCode();
 }
