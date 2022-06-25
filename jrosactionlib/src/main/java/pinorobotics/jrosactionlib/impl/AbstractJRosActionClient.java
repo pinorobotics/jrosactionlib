@@ -63,8 +63,7 @@ public abstract class AbstractJRosActionClient<
         this.actionServerName = actionServerName;
         goalPublisher =
                 new TopicSubmissionPublisher<>(
-                        (Class) actionDefinition.getActionGoalMessage(),
-                        asSendGoalTopicName(actionServerName));
+                        (Class) actionDefinition.getActionGoalMessage(), actionServerName);
     }
 
     @Override
@@ -92,8 +91,6 @@ public abstract class AbstractJRosActionClient<
 
     protected abstract CompletableFuture<ActionResultMessage<R>> callGetResult(I goalId)
             throws Exception;
-
-    protected abstract String asSendGoalTopicName(String actionServerName);
 
     protected abstract I createGoalId();
 
