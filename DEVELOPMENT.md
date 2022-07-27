@@ -1,4 +1,4 @@
-Building **jrosactionlib** module locally and making changes to it (this is optional and not intended for **jrosactionlib** users).
+Building module locally and making changes to it (this is optional and not intended for users).
 
 ## With Eclipse
 
