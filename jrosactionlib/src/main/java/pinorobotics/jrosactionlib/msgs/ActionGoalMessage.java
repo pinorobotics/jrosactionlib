@@ -25,15 +25,12 @@ import id.jrosmessages.Message;
  * <p>Each actionlib goal message should consist from actionlib metadata ({@link
  * ActionGoalIdMessage}) and the goal {@link Message}.
  *
- * <p>ROS2: This class represents the Send Goal requests which usually defined in
- * action/dds_connext/[ACTION_NAME]_.idl files inside *::dds_::[ACTION_NAME]_SendGoal_Request_
- *
- * @see <a href="https://design.ros2.org/articles/actions.html">Actions</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
-public interface ActionGoalMessage<G extends Message> extends Message {
+public interface ActionGoalMessage<I extends ActionGoalIdMessage, G extends Message>
+        extends Message {
 
-    ActionGoalMessage<G> withGoalId(ActionGoalIdMessage goal_id);
+    ActionGoalMessage<I, G> withGoalId(I goal_id);
 
-    ActionGoalMessage<G> withGoal(G goal);
+    ActionGoalMessage<I, G> withGoal(G goal);
 }

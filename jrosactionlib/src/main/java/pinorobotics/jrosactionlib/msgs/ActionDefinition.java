@@ -22,8 +22,8 @@ import id.jrosmessages.Message;
 /**
  * Actionlib action definition.
  *
- * <p>ROS Actionlib allow users to define actions in action/*.action files. For each action it
- * requires to have 3 separate messages: Goal, Feedback, Result.
+ * <p>ROS Actionlib allow users to define custom actions in action/*.action files. For each action
+ * it requires to have 3 separate messages: Goal, Feedback, Result.
  *
  * <p>On top of that it will create for each such message an actionlib message where the original
  * message (Goal, Feedback, Result) + actionlib metadata is stored.
@@ -35,14 +35,16 @@ import id.jrosmessages.Message;
  * different actions. This interface helps to address this too. It consolidates all message types
  * for each action and helps to detect any type issues during compile time.
  *
+ * @param <I> message type used to represent a goal id (it is not the same across ROS versions)
  * @param <G> message type used to represent a goal
  * @param <R> message type sent by ActionServer upon goal completion
  * @author aeon_flux aeon_flux@eclipso.ch
  */
-public interface ActionDefinition<G extends Message, R extends Message> {
+public interface ActionDefinition<
+        I extends ActionGoalIdMessage, G extends Message, R extends Message> {
 
     /** Actionlib message type for a goal */
-    Class<? extends ActionGoalMessage<G>> getActionGoalMessage();
+    Class<? extends ActionGoalMessage<I, G>> getActionGoalMessage();
 
     /** Actionlib message type for a result */
     Class<? extends ActionResultMessage<R>> getActionResultMessage();

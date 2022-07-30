@@ -20,8 +20,11 @@ package pinorobotics.jrosactionlib.msgs;
 import id.jrosmessages.Message;
 
 /**
- * In different ROS version GoalId is different so this interface is used to abstract them from
+ * In different ROS versions the GoalId is different so this interface is used to abstract them from
  * <b>jrosactionlib</b>
+ *
+ * <p>Users usually does not interact with this interface directly instead they rely on its ROS
+ * version specific extensions (see GoalIdMessage for ROS1).
  *
  * @author aeon_flux aeon_flux@eclipso.ch
  */

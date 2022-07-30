@@ -26,10 +26,6 @@ import pinorobotics.jrosactionlib.actionlib_msgs.StatusType;
  * <p>Each actionlib result message should consist from status of goal and the result {@link
  * Message}.
  *
- * <p>ROS2: This class represents the Send Goal requests which usually defined in
- * action/dds_connext/[ACTION_NAME]_.idl files inside *::dds_::[ACTION_NAME]_GetResult_Response_
- *
- * @see <a href="https://design.ros2.org/articles/actions.html">Actions</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 public interface ActionResultMessage<R extends Message> extends Message {

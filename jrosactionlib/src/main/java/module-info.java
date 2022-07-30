@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 /**
- * Interfaces and classes which are agnostic to version of <a
+ * Interfaces and classes which are agnostic to ROS version of <a
  * href="http://wiki.ros.org/actionlib/">ROS Action Server</a>.
  *
  * @see <a href="https://github.com/pinorobotics/jrosactionlib/releases">Download</a>

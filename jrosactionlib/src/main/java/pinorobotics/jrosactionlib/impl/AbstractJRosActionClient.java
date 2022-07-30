@@ -21,7 +21,6 @@ import id.jrosclient.JRosClient;
 import id.jrosclient.TopicSubmissionPublisher;
 import id.jrosmessages.Message;
 import id.xfunction.Preconditions;
-import id.xfunction.lang.XThread;
 import id.xfunction.logging.XLogger;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -44,9 +43,9 @@ public abstract class AbstractJRosActionClient<
     private static final XLogger LOGGER = XLogger.getLogger(AbstractJRosActionClient.class);
     private JRosClient client;
     private String actionServerName;
-    private ActionDefinition<G, R> actionDefinition;
+    private ActionDefinition<I, G, R> actionDefinition;
     private int status; // 0 - not started, 1 - started, 2 - stopped
-    private TopicSubmissionPublisher<ActionGoalMessage<?>> goalPublisher;
+    private TopicSubmissionPublisher<ActionGoalMessage<I, G>> goalPublisher;
 
     /**
      * Creates a new instance of the client
@@ -57,7 +56,9 @@ public abstract class AbstractJRosActionClient<
      */
     @SuppressWarnings("unchecked")
     protected AbstractJRosActionClient(
-            JRosClient client, ActionDefinition<G, R> actionDefinition, String actionServerName) {
+            JRosClient client,
+            ActionDefinition<I, G, R> actionDefinition,
+            String actionServerName) {
         this.client = client;
         this.actionDefinition = actionDefinition;
         this.actionServerName = actionServerName;
@@ -71,17 +72,11 @@ public abstract class AbstractJRosActionClient<
         LOGGER.entering("sendGoal " + actionServerName);
         startLazy();
         var actionGoal = actionDefinition.getActionGoalMessage().getConstructor().newInstance();
-        while (goalPublisher.getNumberOfSubscribers() == 0) {
-            LOGGER.fine("No subscribers");
-            XThread.sleep(100);
-        }
-
         var goalId = createGoalId();
         actionGoal.withGoalId(goalId);
         actionGoal.withGoal(goal);
 
-        LOGGER.info("Sending goal with id {0}", goalId);
-        goalPublisher.submit(actionGoal);
+        submitGoal(goalId, actionGoal);
 
         var future = callGetResult(goalId);
 
@@ -89,15 +84,9 @@ public abstract class AbstractJRosActionClient<
         return future.thenApply(ActionResultMessage::getResult);
     }
 
-    protected abstract CompletableFuture<ActionResultMessage<R>> callGetResult(I goalId)
-            throws Exception;
-
-    protected abstract I createGoalId();
-
-    protected void start() throws Exception {
-        Preconditions.isTrue(status == 0, "Can be started only once");
-        status++;
-        client.publish(goalPublisher);
+    protected void submitGoal(I goalId, ActionGoalMessage<I, G> actionGoal) {
+        LOGGER.info("Sending goal with id {0}", goalId);
+        goalPublisher.submit(actionGoal);
     }
 
     @Override
@@ -108,8 +97,29 @@ public abstract class AbstractJRosActionClient<
             // TODO
             // client.unpublish(goalPublisher.getTopic());
             status++;
+            onClose();
         }
         LOGGER.exiting("close " + actionServerName);
+    }
+
+    public TopicSubmissionPublisher<ActionGoalMessage<I, G>> getGoalPublisher() {
+        return goalPublisher;
+    }
+
+    protected abstract CompletableFuture<? extends ActionResultMessage<R>> callGetResult(I goalId)
+            throws Exception;
+
+    protected abstract I createGoalId();
+
+    protected void onStart() throws Exception {}
+
+    protected void onClose() {}
+
+    private void start() throws Exception {
+        Preconditions.isTrue(status == 0, "Can be started only once");
+        status++;
+        client.publish(goalPublisher);
+        onStart();
     }
 
     private void startLazy() throws Exception {
