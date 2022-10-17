@@ -20,6 +20,8 @@ package pinorobotics.jrosactionlib.impl;
 import id.jrosclient.JRosClient;
 import id.jrosclient.TopicSubmissionPublisher;
 import id.jrosmessages.Message;
+import id.jrosmessages.MessageMetadataAccessor;
+import id.jrosmessages.RosInterfaceType;
 import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
 import java.io.IOException;
@@ -46,6 +48,7 @@ public abstract class AbstractJRosActionClient<
     private ActionDefinition<I, G, R> actionDefinition;
     private int status; // 0 - not started, 1 - started, 2 - stopped
     private TopicSubmissionPublisher<ActionGoalMessage<I, G>> goalPublisher;
+    private MessageMetadataAccessor metadataAccessor = new MessageMetadataAccessor();
 
     /**
      * Creates a new instance of the client
@@ -117,6 +120,14 @@ public abstract class AbstractJRosActionClient<
 
     private void start() throws Exception {
         Preconditions.isTrue(status == 0, "Can be started only once");
+        Preconditions.equals(
+                RosInterfaceType.ACTION,
+                metadataAccessor.getInterfaceType(actionDefinition.getActionGoalMessage()),
+                "ActionGoalMessage should have ACTION interfaceType");
+        Preconditions.equals(
+                RosInterfaceType.ACTION,
+                metadataAccessor.getInterfaceType(actionDefinition.getActionResultMessage()),
+                "ActionResultMessage should have ACTION interfaceType");
         status++;
         client.publish(goalPublisher);
         onStart();
