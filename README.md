@@ -1,4 +1,4 @@
-**jrosactionlib** - interfaces and classes which are agnostic to version of ROS Action Server.
+**jrosactionlib** - base Java module for interaction with ROS Action Server. It contains only interfaces and classes which are agnostic to ROS version.
 
 For ROS2 see [jros2actionlib](https://github.com/pinorobotics/jros2actionlib)
 

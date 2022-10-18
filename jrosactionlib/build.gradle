@@ -13,10 +13,10 @@ plugins {
 }
 
 dependencies {
-    implementation 'io.github.lambdaprime:jrosclient:5.0-SNAPSHOT'
+    implementation 'io.github.lambdaprime:jrosclient:5.0'
 
     // transitively export following dependency to tests project
-    apiElements 'io.github.lambdaprime:jrosclient:5.0-SNAPSHOT'
+    apiElements 'io.github.lambdaprime:jrosclient:5.0'
 }
 
 jar { 
@@ -41,6 +41,7 @@ javadoc {
     options.noNavBar = true;
     // ignore missing @return, @param etc
     options.addBooleanOption('Xdoclint:all,-missing', true)
+    exclude 'pinorobotics/jrosactionlib/impl/**'
 }
 
 def packageDir = "$buildDir/package/${projectName}"
