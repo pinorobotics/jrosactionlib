@@ -18,8 +18,8 @@
 package pinorobotics.jrosactionlib;
 
 import id.jrosmessages.Message;
-import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
+import pinorobotics.jrosactionlib.exceptions.JRosActionLibException;
 
 /**
  * Client which allows to interact with ROS Action Server. It communicates with it via a "ROS Action
@@ -29,12 +29,12 @@ import java.util.concurrent.CompletableFuture;
  * @param <G> message type used to represent a goal
  * @param <R> message type sent by ActionServer upon goal completion
  */
-public interface JRosActionClient<G extends Message, R extends Message> extends Closeable {
+public interface JRosActionClient<G extends Message, R extends Message> extends AutoCloseable {
 
     /**
      * Send new goal to action server to execute
      *
      * @return future which will be completed once action will be completed by an action server
      */
-    CompletableFuture<R> sendGoalAsync(G goal) throws Exception;
+    CompletableFuture<R> sendGoalAsync(G goal) throws JRosActionLibException;
 }

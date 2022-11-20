@@ -31,8 +31,8 @@ module jrosactionlib {
     requires id.xfunction;
 
     exports pinorobotics.jrosactionlib;
+    exports pinorobotics.jrosactionlib.exceptions;
     exports pinorobotics.jrosactionlib.msgs;
-    exports pinorobotics.jrosactionlib.actionlib_msgs;
     exports pinorobotics.jrosactionlib.impl to
             jros1actionlib,
             jros2actionlib;

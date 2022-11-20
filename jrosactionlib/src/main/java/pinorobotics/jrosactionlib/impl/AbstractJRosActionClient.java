@@ -27,6 +27,7 @@ import id.xfunction.logging.XLogger;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import pinorobotics.jrosactionlib.JRosActionClient;
+import pinorobotics.jrosactionlib.exceptions.JRosActionLibException;
 import pinorobotics.jrosactionlib.msgs.ActionDefinition;
 import pinorobotics.jrosactionlib.msgs.ActionGoalIdMessage;
 import pinorobotics.jrosactionlib.msgs.ActionGoalMessage;
@@ -71,20 +72,25 @@ public abstract class AbstractJRosActionClient<
     }
 
     @Override
-    public CompletableFuture<R> sendGoalAsync(G goal) throws Exception {
+    public CompletableFuture<R> sendGoalAsync(G goal) throws JRosActionLibException {
         LOGGER.entering("sendGoal " + actionServerName);
         startLazy();
-        var actionGoal = actionDefinition.getActionGoalMessage().getConstructor().newInstance();
-        var goalId = createGoalId();
-        actionGoal.withGoalId(goalId);
-        actionGoal.withGoal(goal);
+        try {
+            var actionGoal = actionDefinition.getActionGoalMessage().getConstructor().newInstance();
+            var goalId = createGoalId();
+            actionGoal.withGoalId(goalId);
+            actionGoal.withGoal(goal);
 
-        submitGoal(goalId, actionGoal);
+            submitGoal(goalId, actionGoal);
 
-        var future = callGetResult(goalId);
-
-        LOGGER.exiting("sendGoal" + actionServerName);
-        return future.thenApply(ActionResultMessage::getResult);
+            var future = callGetResult(goalId);
+            LOGGER.exiting("sendGoal" + actionServerName);
+            return future.thenApply(ActionResultMessage::getResult);
+        } catch (JRosActionLibException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new JRosActionLibException(e);
+        }
     }
 
     protected void submitGoal(I goalId, ActionGoalMessage<I, G> actionGoal) {
@@ -105,12 +111,11 @@ public abstract class AbstractJRosActionClient<
         LOGGER.exiting("close " + actionServerName);
     }
 
-    public TopicSubmissionPublisher<ActionGoalMessage<I, G>> getGoalPublisher() {
+    protected TopicSubmissionPublisher<ActionGoalMessage<I, G>> getGoalPublisher() {
         return goalPublisher;
     }
 
-    protected abstract CompletableFuture<? extends ActionResultMessage<R>> callGetResult(I goalId)
-            throws Exception;
+    protected abstract CompletableFuture<? extends ActionResultMessage<R>> callGetResult(I goalId);
 
     protected abstract I createGoalId();
 
@@ -118,7 +123,7 @@ public abstract class AbstractJRosActionClient<
 
     protected void onClose() {}
 
-    private void start() throws Exception {
+    private void start() {
         Preconditions.isTrue(status == 0, "Can be started only once");
         Preconditions.equals(
                 RosInterfaceType.ACTION,
@@ -129,15 +134,19 @@ public abstract class AbstractJRosActionClient<
                 metadataAccessor.getInterfaceType(actionDefinition.getActionResultMessage()),
                 "ActionResultMessage should have ACTION interfaceType");
         status++;
-        client.publish(goalPublisher);
-        onStart();
+        try {
+            client.publish(goalPublisher);
+            onStart();
+        } catch (Exception e) {
+            throw new JRosActionLibException(e);
+        }
     }
 
-    private void startLazy() throws Exception {
+    private void startLazy() {
         if (status == 0) {
             start();
         } else if (status != 1) {
-            throw new IllegalStateException("Already stopped");
+            throw new JRosActionLibException("Already stopped");
         }
     }
 }

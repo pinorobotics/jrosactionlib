@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 jrosactionlib project
+ * Copyright 2022 jrosactionlib project
  * 
  * Website: https://github.com/pinorobotics/jrosactionlib
  * 
@@ -15,18 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package pinorobotics.jrosactionlib.msgs;
-
-import id.jrosmessages.Message;
+package pinorobotics.jrosactionlib.exceptions;
 
 /**
- * Base interface for all actionlib result messages.
- *
- * <p>Each actionlib result message should consist from status of goal and the result {@link
- * Message}.
- *
  * @author aeon_flux aeon_flux@eclipso.ch
  */
-public interface ActionResultMessage<R extends Message> extends Message {
-    R getResult();
+public class JRosActionLibException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public JRosActionLibException(String fmt, Object... args) {
+        super(String.format(fmt, args));
+    }
+
+    public JRosActionLibException(Exception e) {
+        super(e);
+    }
 }
