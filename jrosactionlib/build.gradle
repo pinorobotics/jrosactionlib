@@ -1,77 +1,109 @@
 // include xfunction for updateVersion
 buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "io.github.lambdaprime:id.xfunction:14.0"
-    }
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    classpath "io.github.lambdaprime:id.xfunction:23.0"
+  }
 }
 
 plugins {
-    id 'com.diffplug.spotless'
+  id 'com.diffplug.spotless'
+  // only if you build Java library
+  id 'java-library'
+}
+
+apply plugin : 'eclipse'
+
+eclipse.classpath.file {
+  // instruct eclipse plugin to put everything to module path
+  whenMerged {
+    entries.findAll { it.kind == 'lib' }.each { it.entryAttributes['module'] = 'true' }
+  }
 }
 
 dependencies {
-    def jrosclient = 'io.github.lambdaprime:jrosclient:6.0-SNAPSHOT'
-    def xfunction = 'io.github.lambdaprime:id.xfunction:20.0-SNAPSHOT'
-
-    implementation "${jrosclient}"
-    implementation "${xfunction}"
-
-    // transitively export following dependency to tests project
-    apiElements "${jrosclient}"
-    apiElements "${xfunction}"
+  api "io.github.lambdaprime:jrosclient:6.0"
 }
 
-jar { 
-    manifest { 
-        attributes 'Implementation-Version': "${rootProject.version}"
-    }
+configurations {
+  customConfig.extendsFrom implementation
+}
+
+jar {
+  manifest { 
+    attributes 'Implementation-Version': "${rootProject.version}"
+  }
 }
 
 sourceSets {
-    main {
-        java {
-            srcDirs += ["src/main/gen/java"]
-        }
+  main {
+    java {
+      srcDirs += ["src/main/gen/java"]
     }
+  }
 }
 
 javadoc {
-    options.noTimestamp = true;
-    options.noQualifiers = ["all"];
-    options.noTree = true;
-    options.noIndex = true;
-    options.noNavBar = true;
-    // ignore missing @return, @param etc
-    options.addBooleanOption('Xdoclint:all,-missing', true)
-    exclude 'pinorobotics/jrosactionlib/impl/**'
+  options.noTimestamp = true
+  options.noQualifiers = ["all"]
+  options.noTree = true
+  options.noIndex = true
+  options.noNavBar = true
+  // ignore missing @return, @param etc
+  options.addBooleanOption('Xdoclint:all,-missing', true)
+  exclude 'pinorobotics/jrosactionlib/impl/**'
+}
+
+/**
+ * If certain packages are not public and are exported only to specific modules
+ * like "export foo.pkg.impl to bar_module;" then javadoc will generate documentation
+ * for them as well (in example it will be foo.pkg.impl).
+ * There is no way to ask javadoc to include documentation to only publicly available
+ * packages (and drop foo.pkg.impl).
+ * To fix this following task patches module-info during javadoc execution and removes
+ * any "export ... to ...". After javadoc task completes the module-info restored back.
+ */
+javadoc.doFirst {
+  var path = java.nio.file.Paths.get("${projectDir}/src/main/java/module-info.java")
+  println "Patching ${path}"
+  new id.xfunction.text.Substitutor()
+    .withRegexpSupport()
+    .withBackup()
+    .substitute(path, Map.of(
+      "(?s)(?m)exports \\S* to.*;", ""
+    ));
+}.doLast {
+  var path = java.nio.file.Paths.get("${projectDir}/src/main/java/module-info.java")
+  println "Restoring ${path}"
+  id.xfunction.text.Substitutor.restoreBackup(path)
 }
 
 def packageDir = "$buildDir/package/${projectName}"
 
 task createRelease(type: Zip) {
-    archiveFileName = "$releaseFileName"
-    destinationDirectory = file("$projectDir/release")
-    from file("$packageDir/..")
+  archiveFileName = "$releaseFileName"
+  destinationDirectory = file("$projectDir/release")
+  from file("$packageDir/..")
 }
 
 task copyLibs(type: Copy) {
-    from configurations.runtimeClasspath
-    from jar.archiveFile
-    into "${packageDir}/libs"
+  from configurations.runtimeClasspath
+  from jar.archiveFile
+  into "${packageDir}/libs"
 }
 
 task createPackage(type: Copy, dependsOn: [copyLibs]) {
-    from "${project.rootDir}/README.md"
-    from "${project.rootDir}/LICENSE-2.0.txt"
-    into packageDir
+  from "${project.rootDir}/README.md"
+  from "${project.rootDir}/LICENSE-2.0.txt"
+  into packageDir
 }
 
 task cleanRelease(type: Delete) {
-    delete "$packageDir"
-    delete "$projectDir/release"
+  delete "$packageDir"
+  delete "$projectDir/release"
 }
 
 createRelease.dependsOn createPackage, javadoc
@@ -81,26 +113,27 @@ clean.dependsOn cleanRelease
 // run spotless and format code before the build
 classes.dependsOn spotlessApply
 
-if (project.hasProperty('publish')) {
+task updateVersion() {
+  // update version only when it is specified and non SNAPSHOT version is built
+  // 'unspecified' is the default value for the version in Gradle if it is not set
+  if (!version || version == "unspecified" || version.contains("SNAPSHOT")) return;
+  println "Updating version to " + version
+  new id.xfunction.text.Substitutor()
+    .withRegexpSupport()
+    .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
+      "io.github.pinorobotics:jrosactionlib:[0-9.]+", "io.github.pinorobotics:jrosactionlib:" + version
+    ));
+}
+createRelease.dependsOn updateVersion
 
-  // update version only during publishing
-  task updateVersion() {
-      if (version.contains("SNAPSHOT")) return;
-      println "Updating version to " + version
-      new id.xfunction.text.Substitutor()
-          .withRegexpSupport()
-          .substitute(java.nio.file.Paths.get("${project.rootDir}/README.md"), Map.of(
-              "io.github.pinorobotics:jrosactionlib:[0-9.]+", "io.github.pinorobotics:jrosactionlib:" + version
-          ));
-  }
-  createPackage.dependsOn updateVersion
+if (project.hasProperty('publish')) {
 
   // Initially it was taken from https://central.sonatype.org/publish/publish-gradle/
   // but since Gradle removed this plugin https://docs.gradle.org/7.0/userguide/upgrading_version_6.html#removal_of_the_legacy_maven_plugin
   // it was rewritten for new one
 
   task javadocJar(type: Jar) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from "README-javadoc.txt"
   }
 

@@ -19,6 +19,10 @@
  * Interfaces and classes which are agnostic to ROS version of <a
  * href="http://wiki.ros.org/actionlib/">ROS Action Server</a>.
  *
+ * @see <a href="https://github.com/pinorobotics/jros2actionlib">Java client for ROS2 Action
+ *     Server</a>
+ * @see <a href="https://github.com/pinorobotics/jros1actionlib">Java client for ROS1 Action
+ *     Server</a>
  * @see <a href="https://github.com/pinorobotics/jrosactionlib/releases">Download</a>
  * @see <a href="https://github.com/pinorobotics/jrosactionlib">GitHub repository</a>
  * @author aeon_flux aeon_flux@eclipso.ch

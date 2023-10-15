@@ -38,6 +38,10 @@ import id.jrosmessages.Message;
  * @param <I> message type used to represent a goal id (it is not the same across ROS versions)
  * @param <G> message type used to represent a goal
  * @param <R> message type sent by ActionServer upon goal completion
+ * @see <a
+ *     href="https://docs.ros.org/en/galactic/Tutorials/Intermediate/Creating-an-Action.html#defining-an-action">Defining
+ *     actions in ROS2</a>
+ * @see <a href="http://wiki.ros.org/actionlib/#A.action_File">Defining actions in ROS1</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 public interface ActionDefinition<
