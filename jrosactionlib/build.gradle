@@ -1,7 +1,6 @@
 // include xfunction for updateVersion
 buildscript {
   repositories {
-    mavenLocal()
     mavenCentral()
   }
   dependencies {
@@ -13,6 +12,10 @@ plugins {
   id 'com.diffplug.spotless'
   // only if you build Java library
   id 'java-library'
+}
+
+boolean isReleaseBuild() {
+  return version != null && version.matches("\\d+[.\\d+]*");
 }
 
 apply plugin : 'eclipse'
@@ -54,31 +57,19 @@ javadoc {
   options.noNavBar = true
   // ignore missing @return, @param etc
   options.addBooleanOption('Xdoclint:all,-missing', true)
+  options.addStringOption('-show-packages', 'exported')
+  // Gradle does not support exclude correctly:
+  // https://github.com/gradle/gradle/issues/19726
+  def sourceSetDirectories = sourceSets
+    .main
+    .java
+    .sourceDirectories
+    .getFiles()
+    .stream()
+    .map({f -> f.toString() })
+    .collect(java.util.stream.Collectors.joining(":"))
+  options.addStringOption("-source-path", sourceSetDirectories)
   exclude 'pinorobotics/jrosactionlib/impl/**'
-}
-
-/**
- * If certain packages are not public and are exported only to specific modules
- * like "export foo.pkg.impl to bar_module;" then javadoc will generate documentation
- * for them as well (in example it will be foo.pkg.impl).
- * There is no way to ask javadoc to include documentation to only publicly available
- * packages (and drop foo.pkg.impl).
- * To fix this following task patches module-info during javadoc execution and removes
- * any "export ... to ...". After javadoc task completes the module-info restored back.
- */
-javadoc.doFirst {
-  var path = java.nio.file.Paths.get("${projectDir}/src/main/java/module-info.java")
-  println "Patching ${path}"
-  new id.xfunction.text.Substitutor()
-    .withRegexpSupport()
-    .withBackup()
-    .substitute(path, Map.of(
-      "(?s)(?m)exports \\S* to.*;", ""
-    ));
-}.doLast {
-  var path = java.nio.file.Paths.get("${projectDir}/src/main/java/module-info.java")
-  println "Restoring ${path}"
-  id.xfunction.text.Substitutor.restoreBackup(path)
 }
 
 def packageDir = "$buildDir/package/${projectName}"
@@ -103,7 +94,7 @@ task createPackage(type: Copy, dependsOn: [copyLibs]) {
 
 task cleanRelease(type: Delete) {
   delete "$packageDir"
-  delete "$projectDir/release"
+  delete "$projectDir/release/*-SNAPSHOT.zip"
 }
 
 createRelease.dependsOn createPackage, javadoc
@@ -114,9 +105,8 @@ clean.dependsOn cleanRelease
 classes.dependsOn spotlessApply
 
 task updateVersion() {
-  // update version only when it is specified and non SNAPSHOT version is built
-  // 'unspecified' is the default value for the version in Gradle if it is not set
-  if (!version || version == "unspecified" || version.contains("SNAPSHOT")) return;
+  // update version only during release build
+  if (!isReleaseBuild()) return;
   println "Updating version to " + version
   new id.xfunction.text.Substitutor()
     .withRegexpSupport()
