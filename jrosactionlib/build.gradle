@@ -58,6 +58,11 @@ javadoc {
   // ignore missing @return, @param etc
   options.addBooleanOption('Xdoclint:all,-missing', true)
   options.addStringOption('-show-packages', 'exported')
+  // should point to location of element-list files
+  options.addMultilineStringsOption("link").value = [
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jrosclient/",
+    "http://portal2.atwebpages.com/jrosclient/javadoc/jrosmessages/",
+  ]
   // Gradle does not support exclude correctly:
   // https://github.com/gradle/gradle/issues/19726
   def sourceSetDirectories = sourceSets

@@ -23,7 +23,8 @@
  *     Server</a>
  * @see <a href="https://github.com/pinorobotics/jros1actionlib">Java client for ROS1 Action
  *     Server</a>
- * @see <a href="https://github.com/pinorobotics/jrosactionlib/releases">Download</a>
+ * @see <a
+ *     href="https://github.com/pinorobotics/jrosactionlib/blob/main/jrosactionlib/release/CHANGELOG.md">Releases</a>
  * @see <a href="https://github.com/pinorobotics/jrosactionlib">GitHub repository</a>
  * @author aeon_flux aeon_flux@eclipso.ch
  */
