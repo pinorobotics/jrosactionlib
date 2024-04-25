@@ -58,6 +58,6 @@ subprojects {
 }
 
 nexusStaging {
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
-    packageGroup = "io.github.pinorobotics"
+  serverUrl = "https://s01.oss.sonatype.org/service/local/"
+  packageGroup = "io.github.${zzNamespace}"
 }

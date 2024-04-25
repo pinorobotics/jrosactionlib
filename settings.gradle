@@ -1,1 +1,2 @@
-include 'jrosactionlib'
+include "${zzName}"
+include "${zzName}.tests"
