@@ -19,8 +19,8 @@ package pinorobotics.jrosactionlib.impl;
 
 import id.jrosclient.JRosClient;
 import id.jrosclient.TopicSubmissionPublisher;
+import id.jroscommon.RosName;
 import id.jrosmessages.Message;
-import id.jrosmessages.MessageMetadataAccessor;
 import id.jrosmessages.RosInterfaceType;
 import id.xfunction.Preconditions;
 import id.xfunction.logging.XLogger;
@@ -45,11 +45,10 @@ public abstract class AbstractJRosActionClient<
 
     private static final XLogger LOGGER = XLogger.getLogger(AbstractJRosActionClient.class);
     private JRosClient client;
-    private String actionServerName;
+    private RosName actionServerName;
     private ActionDefinition<I, G, R> actionDefinition;
     private int status; // 0 - not started, 1 - started, 2 - stopped
     private TopicSubmissionPublisher<ActionGoalMessage<I, G>> goalPublisher;
-    private MessageMetadataAccessor metadataAccessor = new MessageMetadataAccessor();
 
     /**
      * Creates a new instance of the client
@@ -62,13 +61,13 @@ public abstract class AbstractJRosActionClient<
     protected AbstractJRosActionClient(
             JRosClient client,
             ActionDefinition<I, G, R> actionDefinition,
-            String actionServerName) {
+            RosName actionServerName) {
         this.client = client;
         this.actionDefinition = actionDefinition;
         this.actionServerName = actionServerName;
         goalPublisher =
-                new TopicSubmissionPublisher<>(
-                        (Class) actionDefinition.getActionGoalMessage(), actionServerName);
+                new TopicSubmissionPublisher(
+                        actionDefinition.getActionGoalMessage(), actionServerName);
     }
 
     @Override
@@ -76,7 +75,12 @@ public abstract class AbstractJRosActionClient<
         LOGGER.entering("sendGoal " + actionServerName);
         startLazy();
         try {
-            var actionGoal = actionDefinition.getActionGoalMessage().getConstructor().newInstance();
+            var actionGoal =
+                    actionDefinition
+                            .getActionGoalMessage()
+                            .getMessageClass()
+                            .getConstructor()
+                            .newInstance();
             var goalId = createGoalId();
             actionGoal.withGoalId(goalId);
             actionGoal.withGoal(goal);
@@ -127,11 +131,11 @@ public abstract class AbstractJRosActionClient<
         Preconditions.isTrue(status == 0, "Can be started only once");
         Preconditions.equals(
                 RosInterfaceType.ACTION,
-                metadataAccessor.getInterfaceType(actionDefinition.getActionGoalMessage()),
+                actionDefinition.getActionGoalMessage().readInterfaceType(),
                 "ActionGoalMessage should have ACTION interfaceType");
         Preconditions.equals(
                 RosInterfaceType.ACTION,
-                metadataAccessor.getInterfaceType(actionDefinition.getActionResultMessage()),
+                actionDefinition.getActionResultMessage().readInterfaceType(),
                 "ActionResultMessage should have ACTION interfaceType");
         status++;
         try {

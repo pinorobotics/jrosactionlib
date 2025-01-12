@@ -28,5 +28,7 @@ import id.jrosmessages.Message;
  * @author aeon_flux aeon_flux@eclipso.ch
  */
 public interface ActionResultMessage<R extends Message> extends Message {
+    ActionResultMessage<R> withResult(R result);
+
     R getResult();
 }

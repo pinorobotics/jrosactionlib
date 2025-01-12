@@ -33,4 +33,8 @@ public interface ActionGoalMessage<I extends ActionGoalIdMessage, G extends Mess
     ActionGoalMessage<I, G> withGoalId(I goal_id);
 
     ActionGoalMessage<I, G> withGoal(G goal);
+
+    I getGoalId();
+
+    G getGoal();
 }

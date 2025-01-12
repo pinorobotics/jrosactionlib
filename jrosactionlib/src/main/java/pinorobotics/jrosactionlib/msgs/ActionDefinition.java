@@ -18,6 +18,7 @@
 package pinorobotics.jrosactionlib.msgs;
 
 import id.jrosmessages.Message;
+import id.jrosmessages.MessageDescriptor;
 
 /**
  * Actionlib action definition.
@@ -48,8 +49,8 @@ public interface ActionDefinition<
         I extends ActionGoalIdMessage, G extends Message, R extends Message> {
 
     /** Actionlib message type for a goal */
-    Class<? extends ActionGoalMessage<I, G>> getActionGoalMessage();
+    MessageDescriptor<? extends ActionGoalMessage<I, G>> getActionGoalMessage();
 
     /** Actionlib message type for a result */
-    Class<? extends ActionResultMessage<R>> getActionResultMessage();
+    MessageDescriptor<? extends ActionResultMessage<R>> getActionResultMessage();
 }
