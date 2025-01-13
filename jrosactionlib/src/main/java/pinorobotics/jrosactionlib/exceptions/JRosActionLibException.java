@@ -31,4 +31,8 @@ public class JRosActionLibException extends RuntimeException {
     public JRosActionLibException(Exception e) {
         super(e);
     }
+
+    public JRosActionLibException(String message, Exception e) {
+        super(message, e);
+    }
 }
