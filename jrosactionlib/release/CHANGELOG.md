@@ -1,3 +1,11 @@
+# Version 4
+
+- New constructor for JRosActionLibException
+- Update to the latest changes in jros modules (RosName, MessageDescriptor)
+- Updating gradle files
+
+[jrosactionlib-v4.0.zip](https://github.com/pinorobotics/jrosactionlib/raw/main/jrosactionlib/release/jrosactionlib-v4.0.zip)
+
 # Version 3
 
 - Adding Android build
